@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Terraria;
-using Hooks;
+using TerrariaApi;
+using TerrariaApi.Server;
 using MySql.Data.MySqlClient;
 using TShockAPI.DB;
 using TShockAPI;
@@ -12,7 +13,7 @@ using System.Web;
 
 namespace PluginTemplate
 {
-    [APIVersion(1, 12)]
+    [ApiVersion(1, 14)]
     public class WarpplatePlugin : TerrariaPlugin
     {
         public static List<Player> Players = new List<Player>();
@@ -38,22 +39,26 @@ namespace PluginTemplate
         public override void Initialize()
         {
             Warpplates = new WarpplateManager(TShock.DB);
-            GameHooks.PostInitialize += OnPostInit;
-            GameHooks.Initialize += OnInitialize;
-            GameHooks.Update += OnUpdate;
-            NetHooks.GreetPlayer += OnGreetPlayer;
-            ServerHooks.Leave += OnLeave;
+            var Hook = ServerApi.Hooks;
+
+            Hook.GamePostInitialize.Register(this, (args) => { OnPostInit(); });
+            Hook.GameInitialize.Register(this, (args) => { OnInitialize(); });
+            Hook.GameUpdate.Register(this, (args) => { OnUpdate(); });
+            Hook.NetGreetPlayer.Register(this, OnGreetPlayer);
+            Hook.ServerLeave.Register(this, OnLeave);
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                GameHooks.PostInitialize -= OnPostInit;
-                GameHooks.Initialize -= OnInitialize;
-                GameHooks.Update -= OnUpdate;
-                NetHooks.GreetPlayer -= OnGreetPlayer;
-                ServerHooks.Leave -= OnLeave;
+                var Hook = ServerApi.Hooks;
+
+                Hook.GamePostInitialize.Deregister(this, (args) => { OnPostInit(); });
+                Hook.GameInitialize.Deregister(this, (args) => { OnInitialize(); });
+                Hook.GameUpdate.Deregister(this, (args) => { OnUpdate(); });
+                Hook.NetGreetPlayer.Deregister(this, OnGreetPlayer);
+                Hook.ServerLeave.Deregister(this, OnLeave);
             }
 
             base.Dispose(disposing);
@@ -86,10 +91,10 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("setwarpplate", setwarpplatelabel, "swpl"));
         }
         
-        public void OnGreetPlayer(int ply, HandledEventArgs e)
+        public void OnGreetPlayer(GreetPlayerEventArgs args)
         {
             lock (Players)
-                Players.Add(new Player(ply));
+                Players.Add(new Player(args.Who));
         }
 
         public class Player
@@ -145,11 +150,11 @@ namespace PluginTemplate
                                     {
                                         player.warpplatetime++;
                                         if ((warpplateinfo.Delay - player.warpplatetime) > 0)
-                                            player.TSPlayer.SendMessage("You Will Be Warped To " + Warpplates.GetLabel(warpplateinfo.WarpDest) + " in " + (warpplateinfo.Delay - player.warpplatetime) + " Seconds");
+                                            player.TSPlayer.SendMessage("You Will Be Warped To " + Warpplates.GetLabel(warpplateinfo.WarpDest) + " in " + (warpplateinfo.Delay - player.warpplatetime) + " Seconds", Color.Lime);
                                         else
                                         {
                                             if (player.TSPlayer.Teleport((int)warp.WarpplatePos.X + 2, (int)warp.WarpplatePos.Y + 3))
-                                                player.TSPlayer.SendMessage("You Have Been Warped To " + Warpplates.GetLabel(warpplateinfo.WarpDest) + " via a Warpplate");
+                                                player.TSPlayer.SendMessage("You Have Been Warped To " + Warpplates.GetLabel(warpplateinfo.WarpDest) + " via a Warpplate", Color.Lime);
                                             player.warpplatetime = 0;
                                             player.warped = true;
                                             player.warpcooldown = 3;
@@ -162,18 +167,11 @@ namespace PluginTemplate
             }
         }
 
-        private void OnLeave(int ply)
+        private void OnLeave(LeaveEventArgs args)
         {
             lock (Players)
             {
-                for (int i = 0; i < Players.Count; i++)
-                {
-                    if (Players[i].Index == ply)
-                    {
-                        Players.RemoveAt(i);
-                        break; //Found the player, break.
-                    }
-                }
+                Players.RemoveAll(p => p.Index == args.Who);
             }
         }
 
@@ -181,13 +179,12 @@ namespace PluginTemplate
         {
             lock (Players)
             {
-                int index = -1;
-                for (int i = 0; i < Players.Count; i++)
+                foreach (Player player in Players)
                 {
-                    if (Players[i].Index == ply)
-                        index = i;
+                    if (player.Index == ply)
+                        return ply;
                 }
-                return index;
+                return -1;
             }
         }
 
@@ -470,9 +467,9 @@ namespace PluginTemplate
         private static void warpallow(CommandArgs args)
         {
             if (!Players[GetPlayerIndex(args.Player.Index)].warpplateuse)
-                args.Player.SendMessage("Warpplates Are Now Turned On For You");
+                args.Player.SendMessage("Warpplates are now turned on for you", Color.Green);
             if (Players[GetPlayerIndex(args.Player.Index)].warpplateuse)
-                args.Player.SendMessage("Warpplates Are Now Turned Off For You");
+                args.Player.SendMessage("Warpplates are now turned off for you", Color.Green);
             Players[GetPlayerIndex(args.Player.Index)].warpplateuse = !Players[GetPlayerIndex(args.Player.Index)].warpplateuse;
         }
 

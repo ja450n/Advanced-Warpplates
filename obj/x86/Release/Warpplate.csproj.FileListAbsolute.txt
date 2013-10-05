@@ -4,3 +4,12 @@ C:\Users\Андрей\Documents\GitHub\Advanced-Warpplates\bin\Release\AdvancedW
 C:\Users\Андрей\Documents\GitHub\Advanced-Warpplates\bin\Release\TerrariaServer.exe
 C:\Users\Андрей\Documents\GitHub\Advanced-Warpplates\obj\x86\Release\AdvancedWarpplate.dll
 C:\Users\Андрей\Documents\GitHub\Advanced-Warpplates\obj\x86\Release\AdvancedWarpplate.pdb
+C:\Users\chris\Documents\Git\Advanced-Warpplates\obj\x86\Release\ResolveAssemblyReference.cache
+C:\Users\chris\Documents\Git\Advanced-Warpplates\obj\x86\Release\AdvancedWarpplate.dll
+C:\Users\chris\Documents\Git\Advanced-Warpplates\obj\x86\Release\AdvancedWarpplate.pdb
+C:\Users\chris\Documents\Git\Advanced-Warpplates\bin\Release\AdvancedWarpplate.dll
+C:\Users\chris\Documents\Git\Advanced-Warpplates\bin\Release\AdvancedWarpplate.pdb
+C:\Users\chris\Documents\Git\Advanced-Warpplates\bin\Release\TerrariaServer.exe
+C:\Users\chris\Documents\Git\Advanced-Warpplates\bin\Release\TShockAPI.dll
+C:\Users\chris\Documents\Git\Advanced-Warpplates\bin\Release\HttpServer.dll
+C:\Users\chris\Documents\Git\Advanced-Warpplates\bin\Release\Mono.Data.Sqlite.dll
